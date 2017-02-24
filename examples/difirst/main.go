@@ -1,29 +1,14 @@
 package main
 
-import (
-	"go.uber.org/fx/dig"
-	"go.uber.org/zap"
-)
+import "go.uber.org/zap"
 
 func main() {
+	service := NewService()
 
-	// start with a single container
-	container := dig.New()
+	service.RegisterType(newClient)
+	service.RegisterType(newHandler)
 
-	container.Register(newLogger)
-	container.Register(newClient)
-	container.Register(newHandler)
-
-	// resolve dispatcher
-	var h *handler
-	container.ResolveAll(&h)
-
-	h.Hello()
-}
-
-func newLogger() *zap.Logger {
-	logger, _ := zap.NewProduction()
-	return logger
+	service.Start()
 }
 
 type client struct {
@@ -31,7 +16,7 @@ type client struct {
 }
 
 func newClient() *client {
-	return &client{name: "Barnaby"}
+	return &client{name: "Highgarden"}
 }
 
 type handler struct {
@@ -40,7 +25,7 @@ type handler struct {
 }
 
 func (h *handler) Hello() {
-	h.l.Info("Hello!", zap.Any("client", h.c))
+	h.l.Info("Hello!", zap.Any("client", h.c.name))
 }
 
 func newHandler(l *zap.Logger, c *client) *handler {
