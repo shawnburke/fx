@@ -1,0 +1,8 @@
+name: diggerino
+owner: dontmata@lolz
+
+modules:
+  http:
+    roles:
+      - web
+    port: 8080
