@@ -27,14 +27,25 @@ import (
 	"go.uber.org/fx/modules/uhttp"
 	"go.uber.org/fx/x/modules/xhttp"
 	"go.uber.org/fx/x/xservice"
+	"go.uber.org/zap"
 )
 
 func main() {
-	s := xservice.New(NewHandlers)
+	s := xservice.New(NewHandlers, NewPerson)
 	s.Start()
 }
 
-func NewHandlers() *xhttp.Handlers {
+type person struct {
+	name string
+}
+
+func NewPerson() *person {
+	return &person{name: "Grayson"}
+}
+
+func NewHandlers(p *person, l *zap.Logger) *xhttp.Handlers {
+	l.Info("Hello from the Zap logger!", zap.Any("person", p))
+
 	handler := &handler{}
 	return &xhttp.Handlers{
 		List: []uhttp.RouteHandler{

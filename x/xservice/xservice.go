@@ -26,6 +26,7 @@ import (
 	"go.uber.org/fx/dig"
 	"go.uber.org/fx/service"
 	"go.uber.org/fx/x/modules/xhttp"
+	"go.uber.org/zap"
 )
 
 type Service struct {
@@ -38,12 +39,20 @@ type Service struct {
 func New(cs ...interface{}) *Service {
 	g := dig.New()
 
+	l, _ := zap.NewDevelopment()
+	g.MustRegister(l)
+
 	// register all the provided constructors
 	for _, c := range cs {
 		g.MustRegister(c)
 	}
 
-	m, err := service.WithModule("http", xhttp.New(g)).Build()
+	var handlers *xhttp.Handlers
+	if err := g.Resolve(&handlers); err != nil {
+		log.Panic("well damn!")
+	}
+
+	m, err := service.WithModule("http", xhttp.New(handlers)).Build()
 	if err != nil {
 		log.Panic(err)
 	}

@@ -23,14 +23,12 @@ package xhttp
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	_ "net/http/pprof" // for automatic pprof
 	"sync"
 	"time"
 
-	"go.uber.org/fx/dig"
 	"go.uber.org/fx/service"
 	"go.uber.org/fx/ulog"
 
@@ -67,6 +65,7 @@ type moduleOptions struct{}
 
 type Handlers struct {
 	List []uhttp.RouteHandler
+	//Middlewares []
 }
 
 var _ service.Module = &Module{}
@@ -96,13 +95,8 @@ type Config struct {
 type GetHandlersFunc func(service service.Host) []uhttp.RouteHandler
 
 // New returns a new HTTP module
-func New(g dig.Graph, options ...ModuleOption) service.ModuleCreateFunc {
+func New(handlers *Handlers, options ...ModuleOption) service.ModuleCreateFunc {
 	return func(mi service.Host) (service.Module, error) {
-		var handlers *Handlers
-		if err := g.Resolve(&handlers); err != nil {
-			log.Panic("well damn!")
-		}
-
 		return newModule(mi, handlers, options...)
 	}
 }
