@@ -24,38 +24,49 @@ import (
 	"io"
 	"net/http"
 
-	"go.uber.org/fx/config"
 	"go.uber.org/fx/modules/uhttp"
 	"go.uber.org/fx/x/service"
 	"go.uber.org/zap"
 )
 
 func main() {
-	s := xservice.WithModule(uhttp.XNew, NewHTTPHandlers).Build()
+	s := xservice.
+		WithModule(uhttp.XNew, NewHTTPHandlers).
+		Provide(NewBoomHandler, NewHomeHandler).
+		Build()
+
 	s.Start()
 }
 
 // DEMO: Add custom struct and accept as param here
-func NewHTTPHandlers(l *zap.Logger, config config.Provider) *uhttp.Handlers {
-	l.Info("Hello from the Zap logger!")
-	l.Info("Here is some config", zap.String("serviceOwner", config.Get("owner").String()))
-
+func NewHTTPHandlers(h *homeHandler, b *boomHandler) *uhttp.Handlers {
 	return &uhttp.Handlers{
 		List: []uhttp.RouteHandler{
-			uhttp.NewRouteHandler("/", &handler{}),
-			uhttp.NewRouteHandler("/boom", &boomHandler{}),
+			uhttp.NewRouteHandler("/", h),
+			uhttp.NewRouteHandler("/boom", b),
 		},
 	}
 }
 
-type handler struct{}
+type homeHandler struct{}
 
-func (handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (homeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Woah!\n")
 }
 
-type boomHandler struct{}
+func NewHomeHandler() *homeHandler {
+	return &homeHandler{}
+}
 
-func (boomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+type boomHandler struct {
+	l *zap.Logger
+}
+
+func NewBoomHandler(l *zap.Logger) *boomHandler {
+	return &boomHandler{l: l}
+}
+
+func (b *boomHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "About to boom!\n")
 	panic("KABOOM")
 }

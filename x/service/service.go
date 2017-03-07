@@ -50,6 +50,13 @@ func (b *Builder) WithModule(m interface{}, constructors ...interface{}) *Builde
 	return b
 }
 
+func (b *Builder) Provide(ps ...interface{}) *Builder {
+	for _, p := range ps {
+		b.g.MustRegister(p)
+	}
+	return b
+}
+
 func (b *Builder) Build() service.Manager {
 	// Sample logger object inserted in for demo purposes
 	l, _ := zap.NewProduction()
