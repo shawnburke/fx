@@ -54,9 +54,9 @@ func defaultInboundMiddlewareChainBuilder(log *zap.Logger, authClient auth.Clien
 	return mcb.AddMiddleware(
 		contextInbound{log},
 		panicInbound{statsClient},
-		metricsInbound{statsClient},
-		tracingInbound{},
-		authorizationInbound{authClient, statsClient},
+		//metricsInbound{statsClient},
+		//tracingInbound{},
+		//authorizationInbound{authClient, statsClient},
 	)
 }
 

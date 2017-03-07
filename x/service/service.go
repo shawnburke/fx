@@ -23,42 +23,50 @@ package xservice
 import (
 	"log"
 
+	"go.uber.org/fx/config"
 	"go.uber.org/fx/dig"
 	"go.uber.org/fx/service"
-	"go.uber.org/fx/x/modules/xhttp"
 	"go.uber.org/zap"
 )
 
-type Service struct {
-	service.Manager
-
-	g    dig.Graph
-	mods []service.Module
+type Builder struct {
+	g *dig.Graph
 }
 
-func New(cs ...interface{}) *Service {
+func WithModule(m interface{}, constructors ...interface{}) *Builder {
 	g := dig.New()
+	b := &Builder{g: g}
+	return b.WithModule(m, constructors...)
+}
 
-	l, _ := zap.NewDevelopment()
-	g.MustRegister(l)
+func (b *Builder) WithModule(m interface{}, constructors ...interface{}) *Builder {
+	b.g.MustRegister(m)
 
-	// register all the provided constructors
-	for _, c := range cs {
-		g.MustRegister(c)
+	// Register all the provided module specific constructors
+	for _, c := range constructors {
+		b.g.MustRegister(c)
 	}
 
-	var handlers *xhttp.Handlers
-	if err := g.Resolve(&handlers); err != nil {
-		log.Panic("well damn!")
-	}
+	return b
+}
 
-	m, err := service.WithModule("http", xhttp.New(handlers)).Build()
+func (b *Builder) Build() service.Manager {
+	// Sample logger object inserted in for demo purposes
+	l, _ := zap.NewProduction()
+	b.g.MustRegister(l)
+
+	// Lets get config constructor going in the graph, so anyone who needs it can get it
+	b.g.MustRegister(config.Load)
+
+	// Resolve ModuleProvider from the graph
+	// In the future this can be "find all ModuleProviders in graph
+	var mp service.ModuleProvider
+	b.g.MustResolve(&mp)
+
+	m, err := service.WithModule(mp).Build()
 	if err != nil {
 		log.Panic(err)
 	}
 
-	return &Service{
-		g:       g,
-		Manager: m,
-	}
+	return m
 }
