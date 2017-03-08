@@ -24,6 +24,7 @@ import (
 	"io"
 	"net/http"
 
+	"go.uber.org/fx/config"
 	"go.uber.org/fx/modules/uhttp"
 	"go.uber.org/fx/x/service"
 	"go.uber.org/zap"
@@ -48,14 +49,17 @@ func NewHTTPHandlers(h *homeHandler, b *boomHandler) *uhttp.Handlers {
 	}
 }
 
-type homeHandler struct{}
+type homeHandler struct {
+	config config.Provider
+}
 
-func (homeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *homeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, h.config.Get("owner").String())
 	io.WriteString(w, "Woah!\n")
 }
 
-func NewHomeHandler() *homeHandler {
-	return &homeHandler{}
+func NewHomeHandler(config config.Provider) *homeHandler {
+	return &homeHandler{config: config}
 }
 
 type boomHandler struct {
