@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"go.uber.org/fx/config"
+	"go.uber.org/fx/dig"
 	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
@@ -68,7 +69,7 @@ func newManager(builder *Builder) (Manager, error) {
 	m := &manager{
 		// TODO: get these out of config struct instead
 		moduleWrappers: []*moduleWrapper{},
-		serviceCore:    serviceCore{},
+		serviceCore:    serviceCore{graph: dig.New()},
 	}
 	m.roles = map[string]bool{}
 	for _, r := range m.standardConfig.Roles {
@@ -107,6 +108,11 @@ func newManager(builder *Builder) (Manager, error) {
 	m.setupObserver()
 	m.transitionState(Initialized)
 	m.Metrics().Counter("boot").Inc(1)
+
+	// register host
+	var h Host = m
+	m.graph.MustRegister(&h)
+
 	for _, moduleInfo := range builder.moduleInfos {
 		if err := m.addModule(moduleInfo.provider, moduleInfo.options...); err != nil {
 			return nil, err

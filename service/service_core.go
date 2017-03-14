@@ -28,6 +28,7 @@ import (
 
 	"go.uber.org/fx/auth"
 	"go.uber.org/fx/config"
+	"go.uber.org/fx/dig"
 	"go.uber.org/fx/internal/util"
 	"go.uber.org/fx/metrics"
 	"go.uber.org/fx/tracing"
@@ -93,6 +94,7 @@ type serviceCore struct {
 	standardConfig serviceConfig
 	state          State
 	moduleName     string
+	graph          *dig.Graph
 }
 
 var _ Host = &serviceCore{}
@@ -133,6 +135,10 @@ func (s *serviceCore) Observer() Observer {
 
 func (s *serviceCore) Config() config.Provider {
 	return s.configProvider
+}
+
+func (s *serviceCore) Graph() *dig.Graph {
+	return s.graph
 }
 
 func (s *serviceCore) setupLogging() error {
