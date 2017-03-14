@@ -23,6 +23,7 @@ package service
 import (
 	"go.uber.org/fx/auth"
 	"go.uber.org/fx/config"
+	"go.uber.org/fx/dig"
 	"go.uber.org/fx/metrics"
 
 	opentracing "github.com/opentracing/opentracing-go"
@@ -61,6 +62,7 @@ type Host interface {
 	Tracer() opentracing.Tracer
 	// TODO: Will be removed once log/metrics scoping is moved to the module provider
 	ModuleName() string
+	Graph() *dig.Graph
 }
 
 // A HostContainer is meant to be embedded in a LifecycleObserver

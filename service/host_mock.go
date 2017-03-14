@@ -23,6 +23,7 @@ package service
 import (
 	"go.uber.org/fx/auth"
 	"go.uber.org/fx/config"
+	"go.uber.org/fx/dig"
 	"go.uber.org/fx/metrics"
 
 	"github.com/opentracing/opentracing-go"
@@ -65,6 +66,7 @@ func nopHostConfigured(client auth.Client, logger *zap.Logger, tracer opentracin
 			Owner:       "root@example.com",
 			Description: "does cool stuff",
 		},
+		graph: dig.New(),
 		metricsCore: metricsCore{
 			metrics:       tally.NoopScope,
 			statsReporter: metrics.NopCachedStatsReporter,

@@ -26,7 +26,6 @@ import (
 	"testing"
 
 	"go.uber.org/fx/config"
-	"go.uber.org/fx/dig"
 	"go.uber.org/fx/service"
 	"go.uber.org/yarpc"
 
@@ -37,7 +36,6 @@ import (
 )
 
 func TestNew_OK(t *testing.T) {
-	dig.Reset()
 	chip := New(okCreate)
 	dale := New(okCreate)
 	cfg := []byte(`
@@ -74,12 +72,11 @@ modules:
 
 	// Dispatcher must be resolved in the default graph
 	var dispatcher *yarpc.Dispatcher
-	assert.NoError(t, dig.Resolve(&dispatcher))
+	assert.NoError(t, mi.Graph().Resolve(&dispatcher))
 	assert.Equal(t, 2, len(dispatcher.Inbounds()))
 }
 
 func TestNew_Error(t *testing.T) {
-	dig.Reset()
 	modCreate := New(badCreateService)
 	mod, err := modCreate.Create(mih(t, "yarpc", "hello"))
 	assert.NoError(t, err)
